@@ -29,10 +29,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6">
+    <div className="min-h-screen bg-gradient-to-br from-cool-50/30 via-white to-warm-50/30 flex items-center justify-center px-6">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-2">Northstar</h1>
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-black via-gray-800 to-black bg-clip-text text-transparent">Northstar</h1>
           <p className="text-gray-600">Log in to your account</p>
         </div>
 
@@ -74,7 +74,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-6 py-4 bg-black text-white font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-6 py-4 bg-black text-white font-semibold hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl hover:shadow-cool-200/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {loading ? 'Logging in...' : 'Log in'}
           </button>
@@ -82,7 +82,7 @@ export default function LoginPage() {
 
         <p className="text-center text-gray-600">
           Don't have an account?{' '}
-          <Link href="/register" className="font-semibold text-black hover:underline">
+          <Link href="/register" className="font-semibold text-cool-DEFAULT hover:text-cool-300 transition-colors">
             Sign up
           </Link>
         </p>

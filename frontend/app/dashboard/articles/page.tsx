@@ -34,11 +34,11 @@ export default function ArticlesPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PUBLISHED':
-        return 'bg-green-100 text-green-800';
+        return 'bg-soft-green text-green-700 border border-green-200';
       case 'DRAFT':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-cool-100 text-cool-700 border border-cool-200';
       case 'NEEDS_REVIEW':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-soft-amber text-amber-700 border border-amber-200';
       default:
         return 'bg-gray-100 text-gray-800';
     }

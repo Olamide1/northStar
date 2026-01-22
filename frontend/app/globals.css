@@ -7,6 +7,10 @@
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 255, 255, 255;
+  /* Subtle color accents */
+  --warm-gradient: linear-gradient(135deg, #FFF8F5 0%, #FFFFFF 100%);
+  --cool-gradient: linear-gradient(135deg, #F5F9FF 0%, #FFFFFF 100%);
+  --accent-glow: rgba(107, 163, 255, 0.1);
 }
 
 * {
@@ -58,8 +62,9 @@ body {
 button:focus,
 input:focus,
 textarea:focus {
-  outline: 2px solid #0066FF;
+  outline: 2px solid #6BA3FF;
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(107, 163, 255, 0.1);
 }
 
 /* Sharp contrast */

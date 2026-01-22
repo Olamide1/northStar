@@ -46,47 +46,53 @@ export default function DashboardPage() {
           <h1 className="text-4xl font-bold">Dashboard</h1>
           <Link
             href="/dashboard/projects/new"
-            className="flex items-center gap-2 px-6 py-3 bg-black text-white font-semibold hover:bg-gray-800 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-black text-white font-semibold hover:bg-gray-800 transition-all duration-200 shadow-md hover:shadow-lg hover:shadow-cool-200/50 group"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
             New Project
           </Link>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="border-2 border-black p-6">
+          <div className="border-2 border-black p-6 bg-gradient-to-br from-cool-50/50 to-white hover:shadow-lg transition-all duration-300 group">
             <div className="flex items-center justify-between mb-4">
-              <FileText className="w-8 h-8 text-gray-400" />
+              <FileText className="w-8 h-8 text-cool-DEFAULT group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="text-4xl font-bold mb-1">{dashboardData?.stats.totalArticles ?? 0}</div>
+            <div className="text-4xl font-bold mb-1 bg-gradient-to-r from-cool-DEFAULT to-cool-300 bg-clip-text text-transparent">
+              {dashboardData?.stats.totalArticles ?? 0}
+            </div>
             <div className="text-gray-600">Total Articles</div>
             <div className="text-sm text-gray-500 mt-2">
               {dashboardData?.stats.publishedArticles ?? 0} published
             </div>
           </div>
 
-          <div className="border-2 border-black p-6">
+          <div className="border-2 border-black p-6 bg-gradient-to-br from-warm-50/50 to-white hover:shadow-lg transition-all duration-300 group">
             <div className="flex items-center justify-between mb-4">
-              <Sparkles className="w-8 h-8 text-gray-400" />
+              <Sparkles className="w-8 h-8 text-warm-DEFAULT group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="text-4xl font-bold mb-1">{dashboardData?.stats.totalLeadMagnets ?? 0}</div>
+            <div className="text-4xl font-bold mb-1 bg-gradient-to-r from-warm-DEFAULT to-warm-300 bg-clip-text text-transparent">
+              {dashboardData?.stats.totalLeadMagnets ?? 0}
+            </div>
             <div className="text-gray-600">Lead Magnets</div>
           </div>
 
-          <div className="border-2 border-black p-6">
+          <div className="border-2 border-black p-6 bg-gradient-to-br from-soft-green/30 to-white hover:shadow-lg transition-all duration-300 group">
             <div className="flex items-center justify-between mb-4">
-              <Users className="w-8 h-8 text-gray-400" />
+              <Users className="w-8 h-8 text-green-500 group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="text-4xl font-bold mb-1">{dashboardData?.stats.totalLeads ?? 0}</div>
+            <div className="text-4xl font-bold mb-1 bg-gradient-to-r from-green-500 to-green-400 bg-clip-text text-transparent">
+              {dashboardData?.stats.totalLeads ?? 0}
+            </div>
             <div className="text-gray-600">Total Leads</div>
           </div>
 
-          <div className="border-2 border-black p-6">
+          <div className="border-2 border-black p-6 bg-gradient-to-br from-soft-purple/30 to-white hover:shadow-lg transition-all duration-300 group">
             <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="w-8 h-8 text-gray-400" />
+              <TrendingUp className="w-8 h-8 text-purple-500 group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="text-4xl font-bold mb-1">
+            <div className="text-4xl font-bold mb-1 bg-gradient-to-r from-purple-500 to-purple-400 bg-clip-text text-transparent">
               {dashboardData?.stats.totalLeads && dashboardData?.stats.totalLeadMagnets
                 ? Math.round((dashboardData.stats.totalLeads / dashboardData.stats.totalLeadMagnets) * 10) / 10
                 : 0}

@@ -55,13 +55,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded transition-colors ${
+                className={`group flex items-center gap-3 px-4 py-3 rounded transition-all duration-200 ${
                   isActive
-                    ? 'bg-black text-white'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gradient-to-r hover:from-cool-50 hover:to-transparent hover:text-cool-DEFAULT'
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className={`w-5 h-5 ${isActive ? '' : 'group-hover:scale-110'} transition-transform`} />
                 <span className="font-medium">{item.label}</span>
               </Link>
             );
