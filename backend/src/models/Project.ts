@@ -33,4 +33,5 @@ const ProjectSchema = new Schema<IProject>(
   }
 );
 
-export default mongoose.model<IProject>('Project', ProjectSchema);
+// Fix for hot-reload OverwriteModelError in development
+export default mongoose.models.Project || mongoose.model<IProject>('Project', ProjectSchema);

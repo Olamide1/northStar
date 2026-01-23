@@ -13,6 +13,7 @@ import projectRoutes from './routes/projects';
 import articleRoutes from './routes/articles';
 import leadMagnetRoutes from './routes/leadMagnets';
 import analyticsRoutes from './routes/analytics';
+import leadRoutes from './routes/leads';
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/lead-magnets', leadMagnetRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/leads', leadRoutes);
 
 // Error handling middleware
 app.use((err: Error & { status?: number }, req: express.Request, res: express.Response, next: express.NextFunction) => {

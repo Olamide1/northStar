@@ -36,6 +36,24 @@ export interface Project {
   };
 }
 
+export interface KeywordMetrics {
+  searchVolume: number;
+  searchVolumeRange: string;
+  trafficPotential: number;
+  difficulty: number;
+  difficultyLabel: 'Easy' | 'Medium' | 'Hard' | 'Very Hard';
+  competition: 'Low' | 'Medium' | 'High';
+  type: 'short-tail' | 'mid-tail' | 'long-tail' | 'question';
+  wordCount: number;
+  intent: 'informational' | 'commercial' | 'transactional' | 'navigational';
+  opportunityScore: number;
+  priority: 'High' | 'Medium' | 'Low';
+  estimatedCPC: number;
+  contentLengthRecommendation: number;
+  hasFeaturedSnippetPotential: boolean;
+  seasonalityScore: number;
+}
+
 export interface Article {
   id: string;
   projectId: string;
@@ -50,6 +68,7 @@ export interface Article {
   publishedAt?: string;
   views: number;
   ctaClicks: number;
+  keywordMetrics?: KeywordMetrics;
   createdAt: string;
   updatedAt: string;
   project?: {

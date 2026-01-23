@@ -24,4 +24,5 @@ const ArticleAnalyticsSchema = new Schema<IArticleAnalytics>(
   }
 );
 
-export default mongoose.model<IArticleAnalytics>('ArticleAnalytics', ArticleAnalyticsSchema);
+// Fix for hot-reload OverwriteModelError in development
+export default mongoose.models.ArticleAnalytics || mongoose.model<IArticleAnalytics>('ArticleAnalytics', ArticleAnalyticsSchema);

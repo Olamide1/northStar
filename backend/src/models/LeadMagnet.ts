@@ -37,4 +37,5 @@ const LeadMagnetSchema = new Schema<ILeadMagnet>(
   }
 );
 
-export default mongoose.model<ILeadMagnet>('LeadMagnet', LeadMagnetSchema);
+// Fix for hot-reload OverwriteModelError in development
+export default mongoose.models.LeadMagnet || mongoose.model<ILeadMagnet>('LeadMagnet', LeadMagnetSchema);

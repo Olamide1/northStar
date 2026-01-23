@@ -20,4 +20,5 @@ const ArticleLeadMagnetSchema = new Schema<IArticleLeadMagnet>(
 
 ArticleLeadMagnetSchema.index({ articleId: 1, leadMagnetId: 1, position: 1 }, { unique: true });
 
-export default mongoose.model<IArticleLeadMagnet>('ArticleLeadMagnet', ArticleLeadMagnetSchema);
+// Fix for hot-reload OverwriteModelError in development
+export default mongoose.models.ArticleLeadMagnet || mongoose.model<IArticleLeadMagnet>('ArticleLeadMagnet', ArticleLeadMagnetSchema);

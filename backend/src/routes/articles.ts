@@ -4,6 +4,7 @@ import Article from '../models/Article';
 import Project from '../models/Project';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { generateArticle } from '../services/openai';
+import { analyzeKeyword } from '../services/keywordAnalysis';
 import { PopulatedProject, PopulatedArticle, PopulatedLeadMagnet } from '../types';
 
 const router = express.Router();
@@ -30,6 +31,9 @@ router.post('/generate', authenticate, async (req: AuthRequest, res, next) => {
     // Generate articles
     for (const keyword of keywords) {
       try {
+        // Analyze keyword metrics
+        const keywordMetrics = analyzeKeyword(keyword);
+        
         const articleData = await generateArticle(keyword, {
           title: project.name || project.websiteUrl,
           valueProps: project.valueProps,
@@ -43,7 +47,7 @@ router.post('/generate', authenticate, async (req: AuthRequest, res, next) => {
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-+|-+$/g, '');
 
-        // Create article
+        // Create article with keyword metrics
         const article = await Article.create({
           projectId: project._id,
           keyword,
@@ -54,6 +58,23 @@ router.post('/generate', authenticate, async (req: AuthRequest, res, next) => {
           metaTitle: articleData.metaTitle,
           metaDescription: articleData.metaDescription,
           status: 'DRAFT',
+          keywordMetrics: {
+            searchVolume: keywordMetrics.searchVolume,
+            searchVolumeRange: keywordMetrics.searchVolumeRange,
+            trafficPotential: keywordMetrics.trafficPotential,
+            difficulty: keywordMetrics.difficulty,
+            difficultyLabel: keywordMetrics.difficultyLabel,
+            competition: keywordMetrics.competition,
+            type: keywordMetrics.type,
+            wordCount: keywordMetrics.wordCount,
+            intent: keywordMetrics.intent,
+            opportunityScore: keywordMetrics.opportunityScore,
+            priority: keywordMetrics.priority,
+            estimatedCPC: keywordMetrics.estimatedCPC,
+            contentLengthRecommendation: keywordMetrics.contentLengthRecommendation,
+            hasFeaturedSnippetPotential: keywordMetrics.hasFeaturedSnippetPotential,
+            seasonalityScore: keywordMetrics.seasonalityScore,
+          },
         });
 
         articles.push({
@@ -111,7 +132,7 @@ router.get('/', authenticate, async (req: AuthRequest, res, next) => {
     const ArticleLeadMagnet = (await import('../models/ArticleLeadMagnet')).default;
 
     const articlesWithCounts = await Promise.all(
-      (articles as PopulatedArticle[]).map(async (article) => {
+      (articles as unknown as PopulatedArticle[]).map(async (article) => {
         const leadMagnetCount = await ArticleLeadMagnet.countDocuments({
           articleId: article._id,
         });
@@ -160,13 +181,15 @@ router.get('/', authenticate, async (req: AuthRequest, res, next) => {
 // Get single article
 router.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
-    const article = await Article.findById(req.params.id)
+    const articleRaw = await Article.findById(req.params.id)
       .populate('projectId')
       .lean();
 
-    if (!article) {
+    if (!articleRaw) {
       return res.status(404).json({ error: 'Article not found' });
     }
+
+    const article = articleRaw as unknown as PopulatedArticle;
 
     // Verify project belongs to user
     let project: PopulatedProject | null = null;
@@ -189,11 +212,13 @@ router.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
     const ArticleLeadMagnet = (await import('../models/ArticleLeadMagnet')).default;
     const LeadMagnet = (await import('../models/LeadMagnet')).default;
 
-    const leadMagnets = await ArticleLeadMagnet.find({ articleId: article._id })
+    const leadMagnetsRaw = await ArticleLeadMagnet.find({ articleId: article._id })
       .populate('leadMagnetId')
       .lean();
+    
+    const leadMagnets = leadMagnetsRaw as unknown as any[];
 
-    const articleData = article as PopulatedArticle;
+    const articleData = article;
     const projectIdStr = typeof articleData.projectId === 'object' && articleData.projectId !== null && !(articleData.projectId instanceof mongoose.Types.ObjectId)
       ? (articleData.projectId as PopulatedProject)._id.toString()
       : (articleData.projectId instanceof mongoose.Types.ObjectId ? articleData.projectId.toString() : String(articleData.projectId));
@@ -220,13 +245,13 @@ router.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
           name: project.name,
           websiteUrl: project.websiteUrl,
         },
-        leadMagnets: leadMagnets.map((lm) => {
+        leadMagnets: leadMagnets.map((lm: any) => {
           const leadMagnetIdStr = typeof lm.leadMagnetId === 'object' && lm.leadMagnetId !== null && !(lm.leadMagnetId instanceof mongoose.Types.ObjectId)
             ? (lm.leadMagnetId as PopulatedLeadMagnet)._id.toString()
             : (lm.leadMagnetId instanceof mongoose.Types.ObjectId ? lm.leadMagnetId.toString() : String(lm.leadMagnetId));
 
           return {
-            id: lm._id.toString(),
+            id: lm._id?.toString() || '',
             articleId: lm.articleId.toString(),
             leadMagnetId: leadMagnetIdStr,
             position: lm.position,

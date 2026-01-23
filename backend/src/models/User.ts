@@ -29,4 +29,5 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-export default mongoose.model<IUser>('User', UserSchema);
+// Fix for hot-reload OverwriteModelError in development
+export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

@@ -4,6 +4,7 @@ import Project from '../models/Project';
 import { authenticate, optionalAuth, AuthRequest } from '../middleware/auth';
 import { crawlWebsite } from '../services/crawler';
 import { analyzeProduct } from '../services/openai';
+import { analyzeKeywords } from '../services/keywordAnalysis';
 import { z } from 'zod';
 import { PopulatedProject } from '../types';
 
@@ -89,7 +90,7 @@ router.get('/', authenticate, async (req: AuthRequest, res, next) => {
     const LeadMagnet = (await import('../models/LeadMagnet')).default;
 
     const projectsWithCounts = await Promise.all(
-      (projects as PopulatedProject[]).map(async (project) => {
+      (projects as unknown as PopulatedProject[]).map(async (project) => {
         const [articleCount, leadMagnetCount] = await Promise.all([
           Article.countDocuments({ projectId: project._id }),
           LeadMagnet.countDocuments({ projectId: project._id }),
@@ -139,15 +140,15 @@ router.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
+    const projectData = project as unknown as PopulatedProject;
+
     const Article = (await import('../models/Article')).default;
     const LeadMagnet = (await import('../models/LeadMagnet')).default;
 
     const [articleCount, leadMagnetCount] = await Promise.all([
-      Article.countDocuments({ projectId: project._id }),
-      LeadMagnet.countDocuments({ projectId: project._id }),
+      Article.countDocuments({ projectId: projectData._id }),
+      LeadMagnet.countDocuments({ projectId: projectData._id }),
     ]);
-
-    const projectData = project as PopulatedProject;
     res.json({
       project: {
         id: projectData._id.toString(),
@@ -168,6 +169,29 @@ router.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
           leadMagnets: leadMagnetCount,
         },
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Analyze keywords for a project
+router.get('/:id/keyword-analysis', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const project = await Project.findOne({
+      _id: req.params.id,
+      userId: new mongoose.Types.ObjectId(req.userId),
+    });
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Analyze all seed keywords
+    const keywordAnalysis = analyzeKeywords(project.seedKeywords);
+
+    res.json({
+      keywords: keywordAnalysis,
     });
   } catch (error) {
     next(error);
