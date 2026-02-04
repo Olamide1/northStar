@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Article from '../models/Article';
 import Project from '../models/Project';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { checkArticleLimit } from '../middleware/usageLimits';
 import { generateArticle } from '../services/openai';
 import { analyzeKeyword } from '../services/keywordAnalysis';
 import { PopulatedProject, PopulatedArticle, PopulatedLeadMagnet } from '../types';
@@ -10,7 +11,7 @@ import { PopulatedProject, PopulatedArticle, PopulatedLeadMagnet } from '../type
 const router = express.Router();
 
 // Generate articles for a project
-router.post('/generate', authenticate, async (req: AuthRequest, res, next) => {
+router.post('/generate', authenticate, checkArticleLimit(), async (req: AuthRequest, res, next) => {
   try {
     const { projectId, count = 10 } = req.body;
 
@@ -360,6 +361,84 @@ router.post('/:id/publish', authenticate, async (req: AuthRequest, res, next) =>
       return res.status(404).json({ error: 'Article not found' });
     }
     res.json({ article: { id: updated._id.toString(), ...updated.toObject() } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update article
+router.patch('/:id', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const article = await Article.findById(req.params.id);
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    // Verify article belongs to user's project
+    const project = await Project.findById(article.projectId);
+    if (!project || project.userId.toString() !== req.userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Allowed fields to update
+    const allowedUpdates = [
+      'title',
+      'content',
+      'metaTitle',
+      'metaDescription',
+      'status',
+      'keyword',
+      'topic',
+    ];
+
+    // Validate and update only allowed fields
+    Object.keys(req.body).forEach((key) => {
+      if (allowedUpdates.includes(key)) {
+        (article as any)[key] = req.body[key];
+      }
+    });
+
+    // If slug-related fields changed, regenerate slug
+    if (req.body.title) {
+      const slug = req.body.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      article.slug = `${article.projectId}-${slug}`;
+    }
+
+    await article.save();
+
+    res.json({
+      article: {
+        id: article._id.toString(),
+        ...article.toObject(),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete article
+router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const article = await Article.findById(req.params.id);
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    // Verify article belongs to user's project
+    const project = await Project.findById(article.projectId);
+    if (!project || project.userId.toString() !== req.userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    await article.deleteOne();
+
+    res.json({ message: 'Article deleted successfully' });
   } catch (error) {
     next(error);
   }

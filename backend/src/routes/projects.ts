@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import Project from '../models/Project';
 import { authenticate, optionalAuth, AuthRequest } from '../middleware/auth';
+import { checkProjectLimit } from '../middleware/usageLimits';
 import { crawlWebsite } from '../services/crawler';
 import { analyzeProduct } from '../services/openai';
 import { analyzeKeywords } from '../services/keywordAnalysis';
@@ -20,7 +21,7 @@ const createProjectSchema = z.object({
 });
 
 // Create project (with crawling and analysis)
-router.post('/', optionalAuth, async (req: AuthRequest, res, next) => {
+router.post('/', authenticate, checkProjectLimit, async (req: AuthRequest, res, next) => {
   try {
     const data = createProjectSchema.parse(req.body);
     

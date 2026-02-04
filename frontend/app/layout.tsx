@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary'
 
 export const metadata: Metadata = {
   title: 'Northstar - Get 1,000 customers without writing a word',
@@ -16,7 +17,11 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body>{children}</body>
+      <body>
+        <GlobalErrorBoundary>
+          {children}
+        </GlobalErrorBoundary>
+      </body>
     </html>
   )
 }

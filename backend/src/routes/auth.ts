@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import User from '../models/User';
 import Project from '../models/Project';
 import Lead from '../models/Lead';
+import PasswordResetToken from '../models/PasswordResetToken';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { z } from 'zod';
 
@@ -322,6 +323,123 @@ router.post('/change-password', authenticate, async (req: AuthRequest, res, next
 
     res.json({ message: 'Password updated successfully' });
   } catch (error) {
+    next(error);
+  }
+});
+
+// Request password reset
+router.post('/forgot-password', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return res.json({
+        message: 'If an account exists with that email, a password reset link has been sent.',
+      });
+    }
+
+    // Don't allow password reset for OAuth users
+    if (!user.password) {
+      return res.json({
+        message: 'If an account exists with that email, a password reset link has been sent.',
+      });
+    }
+
+    // Generate reset token
+    const resetToken = await (PasswordResetToken as any).createForUser(user._id);
+
+    // TODO: Send email with reset link
+    // For now, we'll return the token in development mode only
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken.token}`;
+    
+    // In production, you would send an email instead
+    console.log('Password reset URL:', resetUrl);
+    console.log('Reset token:', resetToken.token);
+
+    res.json({
+      message: 'If an account exists with that email, a password reset link has been sent.',
+      // Remove this in production - only for development
+      ...(process.env.NODE_ENV === 'development' && { resetUrl, token: resetToken.token }),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Verify reset token
+router.get('/reset-password/:token', async (req, res, next) => {
+  try {
+    const { token } = req.params;
+
+    const resetToken = await (PasswordResetToken as any).verify(token);
+
+    if (!resetToken) {
+      return res.status(400).json({
+        error: 'Invalid or expired reset token',
+        code: 'INVALID_TOKEN',
+      });
+    }
+
+    // Get user info without sensitive data
+    const user = await User.findById(resetToken.userId).select('email name');
+
+    res.json({
+      valid: true,
+      email: user?.email,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Reset password with token
+router.post('/reset-password', async (req, res, next) => {
+  try {
+    const schema = z.object({
+      token: z.string().min(1, 'Token is required'),
+      password: z.string().min(8, 'Password must be at least 8 characters'),
+    });
+
+    const { token, password } = schema.parse(req.body);
+
+    const resetToken = await (PasswordResetToken as any).verify(token);
+
+    if (!resetToken) {
+      return res.status(400).json({
+        error: 'Invalid or expired reset token',
+        code: 'INVALID_TOKEN',
+      });
+    }
+
+    const user = await User.findById(resetToken.userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    // Mark token as used
+    resetToken.used = true;
+    await resetToken.save();
+
+    res.json({
+      message: 'Password successfully reset. You can now log in with your new password.',
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
     next(error);
   }
 });
